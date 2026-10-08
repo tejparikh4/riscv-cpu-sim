@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RISC-V Sim</title>
+    <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+    <div id="code">
+        <code>
+            aaaaaaa
+        </code>
+    </div>
+
+    <table id="register-table">
+        <thead>
+            <tr>
+                <td>
+                    Register numbers
+                </td>
+                <td>
+                    Values
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    $0
+                </td>
+                <td>
+                    0x00000000
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    $1
+                </td>
+                <td>
+                    0x0f0f0f0f
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table id="memory-table">
+        <thead>
+            <tr>
+                <td>
+                    Memory addresses
+                </td>
+                <td>
+                    Data
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="code">
+                    0x00000000
+                </td>
+                <td class="code">
+                    0x00000000
+                </td>
+            </tr>
+            <tr>
+                <td class="code">
+                    0x00000004
+                </td>
+                <td class="code">
+                    0x00ffff00
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
