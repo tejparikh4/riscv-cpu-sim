@@ -1,12 +1,36 @@
-code, .code {
-  font-family: Consolas,"courier new";
-  color: crimson;
-  background-color: #f1f1f1;
-  padding: 2px;
-  font-size: 105%;
+body {
+  margin: 20px;
+  font-family: sans-serif;
 }
 
-table, th, td {
-  border: 1px solid black;
+.workspace {
+  display: grid;
+  grid-template-columns: 35% 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.tables {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-content: start;
+}
+
+#codebox {
+  box-sizing: border-box;
+  width: 100%;
+  height: 80vh;
+  font-family: monospace;
+}
+
+table {
   border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #aaa;
+  padding: 6px;
+  text-align: left;
 }
