@@ -1,0 +1,5 @@
+{
+  "clangd.arguments": [
+    "--query-driver=/Users/tej/code/emsdk/upstream/emscripten/em++"
+  ]
+}

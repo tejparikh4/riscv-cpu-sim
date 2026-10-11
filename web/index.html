@@ -11,9 +11,15 @@
     <main class="workspace">
         <section class="panel">
             <h2>Assembly</h2>
+            <div class="assembly-controls">
+                <button id="step-button" type="button">Step CPU</button>
+                <button id="run-all-button" type="button" disabled>Run All</button>
+                <label for="execution-speed">Speed <input id="execution-speed" type="range" min="1" max="10" value="5" disabled>
+                </label>
+            </div>
             <textarea id="codebox" spellcheck="false">assembly instruction</textarea>
+                                    
         </section>
-
         <section class="tables">
             <section class="panel">
                 <h2>Registers</h2>
@@ -23,8 +29,6 @@
                             <tr><td>Register numbers</td><td>Values</td></tr>
                         </thead>
                         <tbody>
-                            <tr><td>$0</td><td>0x00000000</td></tr>
-                            <tr><td>$1</td><td>0x0f0f0f0f</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -38,8 +42,6 @@
                             <tr><td>Memory addresses</td><td>Data</td></tr>
                         </thead>
                         <tbody>
-                            <tr><td class="code">0x00000000</td><td class="code">0x00000042</td></tr>
-                            <tr><td class="code">0x00000004</td><td class="code">0x00ffff00</td></tr>
                         </tbody>
                     </table>
                 </div>
