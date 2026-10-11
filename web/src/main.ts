@@ -45,24 +45,32 @@ stepButton.addEventListener('click', () => {
 });
 
 function writeToRegister(register: number, value: number): void {
-    if (register <= 0 || register >= registerValues.length) {
+    if (register < 0 || register >= numRegisters) {
         throw new Error("Invalid register address");
     }
-    registerValues[register] = value >>> 0;
-}
-
-function setAllRegistersToZero(): void {
-    for (let i = 0; i < registerValues.length; i++) {
-        registerValues[i] = 0;
-    }
+    registerValues[register] = value;
     updateRegistersHTML();
 }
 
-function setAllRAMToZero(): void {
-    for (let i = 0; i < RAMValues.length; i++) {
-        RAMValues[i] = 0;
+function writeToRAM(address: number, value: number): void {
+    if (address < 0 || address >= numBytesRAM) {
+        throw new Error("Invalid RAM address");
     }
+    RAMValues[address] = value;
     updateRAMHTML();
+}
+
+function setAllRegistersToZero(): void {
+    for (let i = 0; i < numRegisters; i++) {
+        writeToRegister(i, 0);
+    }
+
+}
+
+function setAllRAMToZero(): void {
+    for (let i = 0; i < numBytesRAM; i++) {
+        writeToRAM(i, 0);
+    }
 }
 
 function updateRegistersHTML(): void {
