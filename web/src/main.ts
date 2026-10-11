@@ -70,16 +70,20 @@ function updateRegistersHTML(): void {
     body.textContent = '';
 
     for (let i = 0; i < registerValues.length; i++) {
-        const row = document.createElement('tr');
-        const name = document.createElement('td');
-        const value = document.createElement('td');
+        const rowElem = document.createElement('tr');
+        const nameElem = document.createElement('td');
+        const valueElem = document.createElement('td');
 
-        name.textContent = 'x' + i;
-        value.textContent = String(registerValues[i]);
+        nameElem.textContent = 'x' + i;
+        let value = registerValues[i].toString(16);
+        while (value.length < 8) {
+            value = '0' + value;
+        }
+        valueElem.textContent = '0x' + value;
 
-        row.appendChild(name);
-        row.appendChild(value);
-        body.appendChild(row);
+        rowElem.appendChild(nameElem);
+        rowElem.appendChild(valueElem);
+        body.appendChild(rowElem);
     }
 }
 
@@ -87,22 +91,41 @@ function updateRAMHTML(): void {
     const body = document.querySelector('#memory-table tbody') as HTMLTableSectionElement;
     body.textContent = '';
 
-    for (let i = 0; i < RAMValues.length; i++) {
-        const row = document.createElement('tr');
-        const address = document.createElement('td');
-        const value = document.createElement('td');
+    for (let i = 0; i < RAMValues.length; i += 4) {
+        const rowElem = document.createElement('tr');
+        const addressElem = document.createElement('td');
+        const valueElem = document.createElement('td');
+        let value = '';
 
-        address.textContent = String(i);
-        value.textContent = String(RAMValues[i]);
+        for (let j = 0; j < 4; j++) {
+            const byteValue = RAMValues[i + j];
+            let byteHexNumber = byteValue.toString(16);
+            while (byteHexNumber.length < 2) {
+                byteHexNumber = '0' + byteHexNumber;
+            }
+            value += byteHexNumber;
+        }
 
-        row.appendChild(address);
-        row.appendChild(value);
-        body.appendChild(row);
+        let address = i.toString(16);
+
+        while (address.length < 8) {
+            address = '0' + address;
+        }
+
+        addressElem.textContent = '0x' + address;
+        valueElem.textContent = '0x' + value;
+
+        rowElem.appendChild(addressElem);
+        rowElem.appendChild(valueElem);
+        body.appendChild(rowElem);
     }
 }
 
-updateRegistersHTML();
-updateRAMHTML();
+setAllRAMToZero();
+setAllRegistersToZero();
+
+// updateRegistersHTML();
+// updateRAMHTML();
 
 
 // function parseAssembly(source: string): ParsedInstruction[] {
