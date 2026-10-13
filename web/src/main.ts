@@ -5,10 +5,14 @@ const numRegisters = 32;
 const numBytesRAM = 128;
 
 type CPU = {
+    loadProgramError(source: string): string;
+    stepError(): string;
     reset(): void;
-    step(): void;
     pc(): number;
-    x1(): number;
+    reg(index: number): number;
+    readByte(address: number): number;
+    instructionCount(): number;
+    currentSourceLine(): number;
     delete(): void;
 };
 
@@ -20,9 +24,7 @@ const wasm = (await createModule({
 
 const cpu = new wasm.CPU();
 
-// console.log(cpu.pc(), cpu.x1());
-
-const codebox = document.getElementById('codebox');
+const codebox = document.getElementById('codebox') as HTMLTextAreaElement;
 
 let registerValues: number[] = [];
 
@@ -36,12 +38,16 @@ for (let i: number = 0; i < numBytesRAM; i++) {
     RAMValues.push(0);
 }
 
-const stepButton = document.getElementById('step-button') as HTMLElement;
+const stepButton = document.getElementById('step-button') as HTMLButtonElement;
 stepButton.addEventListener('click', () => {
-    // console.log("Parsed assembly:", parsedInstructions);
-    cpu.step();
-
-    console.log(cpu.pc(), cpu.x1());
+    clearError();
+    try {
+        loadIfNeeded();
+        if (cpu.currentSourceLine() === 0) cpu.reset();
+        executeStep();
+    } catch (error) {
+        showError(error);
+    }
 });
 
 function writeToRegister(register: number, value: number): void {
@@ -49,7 +55,6 @@ function writeToRegister(register: number, value: number): void {
         throw new Error("Invalid register address");
     }
     registerValues[register] = value;
-    updateRegistersHTML();
 }
 
 function writeToRAM(address: number, value: number): void {
@@ -57,7 +62,6 @@ function writeToRAM(address: number, value: number): void {
         throw new Error("Invalid RAM address");
     }
     RAMValues[address] = value;
-    updateRAMHTML();
 }
 
 function setAllRegistersToZero(): void {
@@ -106,7 +110,7 @@ function updateRAMHTML(): void {
         let value = '';
 
         for (let j = 0; j < 4; j++) {
-            const byteValue = RAMValues[i + j];
+            const byteValue = RAMValues[i + 3 - j];
             let byteHexNumber = byteValue.toString(16);
             while (byteHexNumber.length < 2) {
                 byteHexNumber = '0' + byteHexNumber;
@@ -131,11 +135,154 @@ function updateRAMHTML(): void {
 
 setAllRAMToZero();
 setAllRegistersToZero();
+updateRegistersHTML();
+updateRAMHTML();
 
-// updateRegistersHTML();
-// updateRAMHTML();
+function copyCPUToTables(): void {
+    for (let i = 0; i < numRegisters; i++) {
+        writeToRegister(i, cpu.reg(i));
+    }
+    for (let i = 0; i < numBytesRAM; i++) {
+        writeToRAM(i, cpu.readByte(i));
+    }
+    updateRegistersHTML();
+    updateRAMHTML();
+}
 
+const activeLine = document.getElementById('active-line') as HTMLDivElement;
+const runButton = document.getElementById('run-all-button') as HTMLButtonElement;
+const resetButton = document.getElementById('reset-button') as HTMLButtonElement;
+const speed = document.getElementById('execution-speed') as HTMLInputElement;
+const status = document.getElementById('execution-status') as HTMLParagraphElement;
+const errorDisplay = document.getElementById('assembly-error') as HTMLParagraphElement;
 
-// function parseAssembly(source: string): ParsedInstruction[] {
-    
-// }
+let loadedSource: string | null = null;
+let timer: number | undefined;
+let highlightedLine = 0;
+
+function hex(value: number): string {
+    return '0x' + value.toString(16).padStart(8, '0');
+}
+
+function highlight(line: number): void {
+    highlightedLine = line;
+    if (line === 0) {
+        activeLine.style.display = 'none';
+        return;
+    }
+    const lineHeight = parseFloat(getComputedStyle(codebox).lineHeight);
+    const paddingTop = parseFloat(getComputedStyle(codebox).paddingTop);
+    const top = paddingTop + (line - 1) * lineHeight;
+    if (top < codebox.scrollTop || top + lineHeight > codebox.scrollTop + codebox.clientHeight) {
+        codebox.scrollTop = Math.max(0, top - codebox.clientHeight / 2);
+    }
+    activeLine.style.top = `${top - codebox.scrollTop}px`;
+    activeLine.style.height = `${lineHeight}px`;
+    activeLine.style.display = 'block';
+}
+
+function stopRunning(): void {
+    if (timer !== undefined) window.clearTimeout(timer);
+    timer = undefined;
+    runButton.textContent = 'Run All';
+    stepButton.disabled = false;
+}
+
+function clearError(): void {
+    errorDisplay.hidden = true;
+    errorDisplay.textContent = '';
+}
+
+function showError(error: unknown): void {
+    stopRunning();
+    const message = error instanceof Error ? error.message : String(error);
+    errorDisplay.textContent = message;
+    errorDisplay.hidden = false;
+    status.textContent = 'Stopped on error.';
+    const match = /^Line (\d+):/.exec(message);
+    highlight(match ? Number(match[1]) : 0);
+}
+
+function loadIfNeeded(): void {
+    if (loadedSource === codebox.value) return;
+    const error = cpu.loadProgramError(codebox.value);
+    if (error) throw new Error(error);
+    if (cpu.instructionCount() === 0) throw new Error('Enter at least one instruction.');
+    loadedSource = codebox.value;
+    copyCPUToTables();
+}
+
+function executeStep(): void {
+    const line = cpu.currentSourceLine();
+    const error = cpu.stepError();
+    copyCPUToTables();
+    if (error) throw new Error(error);
+    highlight(line);
+    if (cpu.currentSourceLine() === 0) {
+        stopRunning();
+        status.textContent = `Finished after line ${line}. PC is ${hex(cpu.pc())}.`;
+    } else {
+        status.textContent = '';
+    }
+}
+
+function scheduleStep(): void {
+    timer = window.setTimeout(() => {
+        timer = undefined;
+        try {
+            executeStep();
+            if (cpu.currentSourceLine() !== 0) scheduleStep();
+        } catch (error) {
+            showError(error);
+        }
+    }, 1100 - Number(speed.value) * 100);
+}
+
+runButton.addEventListener('click', () => {
+    if (timer !== undefined) {
+        stopRunning();
+        status.textContent = `Paused at PC ${hex(cpu.pc())}.`;
+        return;
+    }
+    clearError();
+    try {
+        loadIfNeeded();
+        if (cpu.currentSourceLine() === 0) {
+            cpu.reset();
+            copyCPUToTables();
+            highlight(0);
+        }
+        status.textContent = `Running from PC ${hex(cpu.pc())}.`;
+        stepButton.disabled = true;
+        runButton.textContent = 'Pause';
+        scheduleStep();
+    } catch (error) {
+        showError(error);
+    }
+});
+
+resetButton.addEventListener('click', () => {
+    stopRunning();
+    cpu.reset();
+    clearError();
+    copyCPUToTables();
+    highlight(0);
+    status.textContent = 'Reset. Click Step CPU to advance one instruction forward or Run All to run the entire program.';
+});
+
+codebox.addEventListener('input', () => {
+    stopRunning();
+    loadedSource = null;
+    cpu.reset();
+    copyCPUToTables();
+    clearError();
+    highlight(0);
+    status.textContent = 'Code changed. Click Step CPU to advance one instruction forward or Run All to run the entire program.';
+});
+
+codebox.addEventListener('scroll', () => {
+    if (highlightedLine === 0) return;
+    const lineHeight = parseFloat(getComputedStyle(codebox).lineHeight);
+    const paddingTop = parseFloat(getComputedStyle(codebox).paddingTop);
+    activeLine.style.top = `${paddingTop + (highlightedLine - 1) * lineHeight - codebox.scrollTop}px`;
+});

@@ -4,8 +4,12 @@
 EMSCRIPTEN_BINDINGS(riscv) {
   emscripten::class_<CPU>("CPU")
     .constructor<>()
+    .function("loadProgramError", &CPU::loadProgramError)
     .function("reset", &CPU::reset)
-    .function("step", &CPU::step)
+    .function("stepError", &CPU::stepError)
     .function("pc", &CPU::pc)
-    .function("x1", &CPU::x1);
+    .function("reg", &CPU::reg)
+    .function("readByte", &CPU::readByte)
+    .function("instructionCount", &CPU::instructionCount)
+    .function("currentSourceLine", &CPU::currentSourceLine);
 }

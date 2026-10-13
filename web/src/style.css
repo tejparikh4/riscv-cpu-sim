@@ -17,11 +17,58 @@ body {
   align-content: start;
 }
 
+.assembly-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.code-editor {
+  position: relative;
+  height: 80vh;
+  overflow: hidden;
+  border: 1px solid #888;
+}
+
+#active-line {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 21px;
+  background: #fff0a8;
+  pointer-events: none;
+}
+
 #codebox {
+  position: relative;
   box-sizing: border-box;
   width: 100%;
-  height: 80vh;
+  height: 100%;
+  padding: 10px;
+  border: 0;
+  background: transparent;
   font-family: monospace;
+  font-size: 14px;
+  line-height: 21px;
+  resize: none;
+}
+
+#assembly-error {
+  color: #a40000;
+  background: #ffe7e7;
+  padding: 8px;
+}
+
+#execution-status {
+  margin: 0 0 10px;
+}
+
+.instruction-help {
+  color: #555;
+  font-size: 0.9rem;
 }
 
 table {
